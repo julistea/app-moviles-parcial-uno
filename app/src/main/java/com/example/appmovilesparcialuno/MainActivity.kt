@@ -9,9 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.navigation.NavHost
+
 import com.example.appmovilesparcialuno.ui.theme.AppMovilesParcialUnoTheme
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +27,33 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppMovilesParcialUnoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                var saldo by remember { mutableFloatStateOf(250000f) }
+                var lastWithdraw by remember { mutableFloatStateOf(0f) }
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "saldo"
+                ) {
+                    composable("saldo") {
+                        SaldoCuenta(
+                            navController = navController,
+                            saldo = saldo,
+                            onWithdrawal = { withdrawal ->
+                                saldo -= withdrawal
+                                lastWithdraw = withdrawal
+                            }
+                        )
+                    }
+                    composable("comprobante/{monto}") { backStackEntry ->
+                        val monto = backStackEntry.arguments?.getString("monto")
+                        Comprobante(
+                            navController = navController,
+                            monto = monto
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AppMovilesParcialUnoTheme {
-        Greeting("Android")
     }
 }
